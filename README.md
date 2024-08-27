@@ -4,9 +4,9 @@
 
 - Principios:
 
-  - 1 Funcionamento do Computador
-  - 2 Algoritimo e Estrutura de Dados
-  - 3 Design de Sistemas
+  - 1 Funcionamento do Computador (Onde o código irá rodar)
+  - 2 Algoritimo e Estrutura de Dados (Como o código irá rodar)
+  - 3 Design de Software (Como o código ira representar da melhor forma problemas reais)
 
 - Front-End (Cliente)
 - Redes (Comunicação)
