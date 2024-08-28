@@ -1,5 +1,7 @@
 # Funcionamento do Computador
 
+Definição: Fazem essencialmente a mesma coisa, recebem inputs, os manipulam e geram um output, só o fazem subindo seu nível de abstração.
+
 - 1 Estrutura do Computador
 - 2 Sistema operacional
 - 3 Linguagem de Programação
