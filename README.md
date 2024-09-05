@@ -6,8 +6,8 @@
 
   - [1 Funcionamento do Computador (Onde o código irá rodar)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador)
 
-    - [Hardware](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador/hardware)
-    - [Sistema Operacional](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador/sistema-operacional)
+    - [Hardware](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador/hardware.md)
+    - [Sistema Operacional](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador/sistema-operacional.md)
     - [Software](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador)
 
   - [2 Algoritimo e Estrutura de Dados (Como o código irá rodar)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/algoritimos_e_estrutura_de_dados)
