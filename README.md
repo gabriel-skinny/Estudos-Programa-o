@@ -5,6 +5,12 @@
 - Principios:
 
   - [1 Funcionamento do Computador (Onde o código irá rodar)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador)
+  <details>
+    <summary>Ver detalhes</summary>
+    - Hardware
+    - Sistema Operacional
+    - Software
+  </details>
   - [2 Algoritimo e Estrutura de Dados (Como o código irá rodar)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/algoritimos_e_estrutura_de_dados)
   - [3 Design de Software (Como o código ira representar da melhor forma problemas reais)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/design)
 
