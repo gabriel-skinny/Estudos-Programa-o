@@ -17,6 +17,10 @@ Divisão do Computador:
 
 Divisão do Hardware:
 
+- CPU (Unidade central de Processamento):
+- Memoria:
+- Dipostivos I/O: Toda entrada e saída do computador (Mouses, teclados, Monitor)
+
 - Dipositivos de Input: Teclado, Mouse
 - Dispostiviso de Output: Monitor
 - Unidade de Controle: Controla os componentes do computador através de instruções e manipulações
