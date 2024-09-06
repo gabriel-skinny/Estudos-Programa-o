@@ -26,6 +26,8 @@ Arquitetura de Von Newman:
 
 ## CPU
 
+Definição: Um componente eletrônico que executa operações lógicas, aritiméticas, de controle e operações de input e output.
+
 Divisão da CPU:
 
 - ALU (Unidade lógica e Aritimética): Executa operações lógicas e aritiméticas
@@ -40,6 +42,8 @@ Clico de instrução:
 - Repetição:
 
 Cache da Cpu: Usado para guardar dados que são retornados mais rapidamente do que se forem pegos da memória principal(RAM).
+
+Core: A unidade de processamento da CPU que recebe e processa instruções.
 
 ## Memoria
 
