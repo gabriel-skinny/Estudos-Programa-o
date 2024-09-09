@@ -5,7 +5,7 @@ Definição: É um software que funciona como uma inteface entre o usuario e o h
 Duas funções
 
 - Abstrair operações do Hardware
-- Controlar os recursos do Hardware
+- Controlar os recursos do Hardware: Gerenciamento de Processos e de Memória
 
 Abstrações do Sistema Operacional
 
@@ -60,18 +60,13 @@ Processo: Uma abstração de um programa em execução. Todo processo possui ran
 Processos em Unix:
 
 - Text Segment: O Código de execução do programa
-- Data Segment: As variaveis, que cresce para cima na memória
-- Stack Segment: Contexto de execução, que cresce para baixo na memória
-
-Process Table: Contem todas as informações para rodar um processo, que poderão ser utilizadas para traze-lo de volta à memória quando interrompido.
+- Data Segment: As variaveis globais, que cresce para cima na memória
+- Stack Segment: Contexto de execução que contém variaveis locais, parametros da função e o seu retorno, que cresce para baixo na memória
+- Heap Segment: Memória alocada dinamicamente em tempo de execução.
 
 Interprocess Comunication: Um processo pode criar outro processo para fazer alguma tarefa, o que chamamos de Child-Process, e eles precisam conseguir comunicar-se entre si.
 
-Multiprogramming: Apesar da CPU conseguir executar uma instrução por vês, ela pode ir se alternando entre processos, trocando seu Program counter virtual por um program counter físico, que roda os processos em sequencia, de forma alternada.
-
 Sistema Time-Sharing: Um programa pode ficar muito tempo esperando um input e a CPU vai ficar parada enquanto poderia estar executando outra coisa. O sistema operacional pode fazer a CPU executar varias tarefas ao mesmo tempo, alterando-se entre si, de modo tão rapido que o usuario nem percebe. Esse tipo de sistema é muito usado quando se tem varios usuarios fazendo tarefas que acabam rapidamente.
-
-Pipe: Sistemas UNIX possuem um modo de comunicação entre processos em que um processo produz um output, o escreve em uma specie de Pseudoarquivo chamado Pipe, que é usado como input por outro programa.
 
 Criação de Processo:
 
@@ -86,11 +81,81 @@ Terminação de Processo:
 - Fatal error: Quando tem um bug no programa e ele acessa recursos que não pode
 - Killed by another process: Outro processo com permisão chama o System call kill
 
-Hierarquia de Processos:
+O Sistema operacional cuida das seguintes atividades no gerenciamento de processos:
+
+- Agenda processos e threads na CPU
+- Cria e deleta processos do sistema e do usuario
+- Suspende e continua processos
+- Provê mecanismo para a sicronização de processos
+- Provê mecanismo para a comunicação de processos
+
+Hierarquia de Processos: Em unix temos um grupo de processos, que é todos os child-processes de um processo e seus descendentes. Então o primeiro processo criado, init em Unix, é o pai de todos os processos, e todos eles são derivados dele.
+
+Pipe: Sistemas UNIX possuem um modo de comunicação entre processos em que um processo produz um output, o escreve em uma specie de Pseudoarquivo chamado Pipe, que é usado como input por outro programa.
+
+Status do processo:
+
+- Rodando: Sendo executado pela CPU
+- Pronto: Executável, porém está esperando outro processo que está sendo executado pela CPU
+- Bloqueado: Não está executável pois está esperando um evento externo acontecer
+
+Process Table: Contem todas as informações para rodar um processo, que poderão ser utilizadas para traze-lo de volta à memória quando interrompido.
+
+Queues de execução:
+
+- Ready: Os processos com status "Pronto" são colocado em uma fila para serem executados pela CPU
+- I/O device: Processos stopados esperando receber o input de algum I/O device
+- Child Process: Iniciou um child-process e está esperando ele terminar de execuar para receber seu output
+
+Scheduler: Define qual processo será executado pela CPU, pegando suas informações da process table, e colocando na fila certa.
+
+Multiprogramming: Apesar da CPU conseguir executar uma instrução por vês, ela pode ir se alternando entre processos, trocando seu Program counter virtual por um program counter físico, que roda os processos em sequencia, de forma alternada.
 
 ### Thread
 
+Definição: Um mini processo dentro de um processo, que se refere a uma linha de execução. Um processo pode ter mais de uma linha de execução, podendo ele mesmo ser um scheduler e definir quando rodar e alocar suas execuções. A principal diferença de um processo é que as threads possuem memória compartilhada entre si.
+
+Beneficio de Threads: Sem threads teriamos que criar um processo para cada função que quissesemos executar em parelelo e ser agendada pelo scheduler, porém não conseguiriamos fazer uma mudança global na aplicação, já que as funções estariam dividias em seus processos isolados. Com threads podemos definir as linhas de execução do nosso programa, e da-las ao scheduler, para conseguir executa-las em "paralelo" e ter o beneficio de conseguir fazer mudanças rapidamente na aplicação inteira.
+
+Dados de uma thread:
+
+- Program Counter
+- Registradores com variaveis locais
+- Stack que contem um histórico de execução e um frame para cada chamada de função não retornada
+- Status
+
+Thread X Processo:
+
+- Processo: Abstração de agrupamento de recursos do sistema para execução de um programa
+- Thread: Abstração de Entidades agendadas para serem executadas pela CPU
+
+Modos de executar um programa:
+
+- Sequencialmente com uma thread: Bloqueam a linha de execução e não pode rodar em paralelo
+- Sequencialmente com Multi-Threading: Roda em paralelo
+- Assincronamente(Finite-state machine): Fazer operações non-blocking de I/O e guardar as operações em tabelas, e altera-las conforme chegam eventos.
+
+Implementação de Threads
+
+- User Level: O Sistema operacional não conhece que existem threads, elas são implementadas por uma blibioteca externa que possui sua propria lógica para lidar internamente com threads dentro de um processo e deixão uma tabela de threads na memória do processo. Tem melhor performance por não precisar fazer system-calls porém perde seu sentido quando tem chamadas I/O que bloqueiam a execução de uma thread, pois o processo será bloqueado pelo sistema operacional e nenhuma thread poderá rodar
+- Kernel Level: A tabela de threads é colocada no kernel e o sistema operacional implementa o agendamento das threads, permitindo que um mesmo processo seja bloqueado em uma thread mas não pare de rodar pois o sistema começou a executar outra thread disponível desse mesmo processo. O problema é o custo das sistem calls.
+- Multiplex user-threads: O programador escolhe quantas threads serão lidadas pelo sistema operacional e quais serão por uma blibioteca user-level, podendo ter uma ou mais threads relacionadas a um thread criada pelo kernel.
+
+Problemas de Multi-Threading:
+
+- Variaveis globais que são alteradas por varias threads
+- Blibiotecas que podem ser chamada duas vezes por threads diferentes causando comportamentos inesperados
+- Sinais que são mandados pelo sistema operacioanal que não pode sinalizar diretamente para threads user-levels
+
 ## Gerenciamento de Memória
+
+Memória: Um array de bytes em que cada valor tem um endereço especifico, que é acessado pela CPU e dispostivos de I/O, de forma rápida.
+
+O sistema operacional faz as seguintes operacões para o gerenciamento de memória:
+
+- Guarda o registro de quais partes da memória estão sendo acessados e por quem
+- Decide que processos e dados para tira-lo ou coloca-lo em memória
+- Alocar e desalocar espaço da memória conforme a necessidade
 
 Memória Virtual: Um dos recursos que o sistema operacional faz é abstrair os endereços físicos da memoria para endereços virtuais. Isso permite que o sistema operacional consiga fornecer a um programa mais memória do que existe no computador e isola-lo de usar a memória de outros programas.
 

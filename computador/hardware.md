@@ -32,7 +32,7 @@ Divisão da CPU:
 
 - ALU (Unidade lógica e Aritimética): Executa operações lógicas e aritiméticas
 - UC(Unidade de controle): Decodifica instruções, controla o ponto de execução, direciona o fluxo de dados entre a CPU e outros dispositivos. A maioria dos recursos do computador são gerenciadas por ela.
-- Registradores: Amazenam dados para o processamento
+- Registradores: Amarmazenam dados que serão variaveis usadas nas instruções
 
 Clico de instrução:
 
@@ -44,6 +44,12 @@ Clico de instrução:
 Cache da Cpu: Usado para guardar dados que são retornados mais rapidamente do que se forem pegos da memória principal(RAM).
 
 Core: A unidade de processamento da CPU que recebe e processa instruções.
+
+Tipos de Registradores:
+
+- PC (Program Counter): Contem o endereço de memória da instrução a ser executada
+- Stack pointer: Registrado que contém o endereço da memória do topo da stack corrente
+- PSW(Program Status Word): Contém uma seríes de control bits que indicam varios dados que são usados em verificações como: O modo(kernel ou user), a prioridade da CPU, e etc.
 
 ## Memoria
 
