@@ -15,3 +15,7 @@ Sistema de Tipos:
 Compilador: Um programa escrito em uma linguagem intermediaria que traduz os textos escritos definidos pela linguagem de programação compilada para código de maquina
 
 Interpretrador: Transforma cada linha do código escrito em linguagem de maquina antes de executar, pode fazer isso de duas formas: Parseia o código e o executa, ou o traduz para uma linguagem intermediaria e o executa. Foram criadas para serem linguagens de script, que executam rapidamente e acabam. Tem a desvantagem de executar de forma mais lenta, porém economiza tempo na hora do desenvolvimento por não ter que ficar compilando o código a cada alteração. Porém muitas linguagens modernas não usam apenas um intepretador mais mesclam as duas estrategias.
+
+## Referencias
+
+[Crafiting Compilers](https://craftinginterpreters.com/contents.html)

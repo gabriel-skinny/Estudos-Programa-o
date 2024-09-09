@@ -22,3 +22,4 @@
 Cursos
 
 - [Fabio Akita](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/cursos/fabio-akita)
+- [Full Cycle](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/cursos/full-cycle)
