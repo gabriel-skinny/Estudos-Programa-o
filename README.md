@@ -8,10 +8,11 @@
 
     - [Hardware](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador/hardware.md)
     - [Sistema Operacional](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador/sistema-operacional.md)
-    - [Software](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador)
+    - [Linguagem de Programação](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/computador)
 
   - [2 Algoritimo e Estrutura de Dados (Como o código irá rodar)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/algoritimos_e_estrutura_de_dados)
-  - [3 Design de Software (Como o código ira representar da melhor forma problemas reais)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/design)
+
+  - [3 Design de Software (Como o código será melhor estruturado e representará da melhor forma problemas reais)](https://github.com/gabriel-skinny/Estudos-Programacao/tree/main/design)
 
 - Divisão da Web
   - Front-End (Cliente)[]
