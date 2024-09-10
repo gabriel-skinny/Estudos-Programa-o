@@ -49,13 +49,33 @@ Design interno das interfaces de um Sistema Operacional:
 - Monolito: Um binário que contem todas as funções para se comunicar com o hardware
 - Layers: Cada layers tem uma responsabilidade e rodam em kernel mode
 - Microkernel: Apenas um pequeno modulo de funções que roda em Kernel mode e contral o acesso ao hardware, e outro modulos com menos privilegio que rodam coisas como Drivers e o File-System. Um bug em um dos modulos não causa um bug total no sistema, mas apenas na aquele modulo.
+- Modulos:
 - Virtual Machine: Um kernel que lida com multiprogramação e gera maquinas virtuas, que são uma copia exata do seu hardware. Então cada maquina virtual pode ter seu sistema operacional que interage com esse hardware virtual. Hoje se usa muito maquinas virtuais para rodar varios servidores em um ambiente isolado, porém na mesma maquina fisica.
+
+Design de modulos do Kernel do Linux:
+
+- I/O Component: Terminal, Sockets, Network, File System, I/O Scheduler, Block device
+- Memory mgt component: Virtual Memory, Paging, page, page cache
+- Process mgt component: Signal Handlging, Process/Thread control, CPU scheduling
 
 ## Processos e Threads
 
 ### Processos
 
-Processo: Uma abstração de um programa em execução. Todo processo possui range de endereços de memoria que poderá utilizar, e também possui todas as informações para ele rodar: Processos relacionados, arquivos abertos e etc. Ele é como uma copia virtual de uma CPU, contendo todos os valores, Program counter e instruções que precisa para rodar
+Processo: Uma abstração de um programa em execução. Todo processo possui range de endereços de memoria que poderá utilizar, e também possui todas as informações para ele rodar: Processos relacionados, arquivos abertos e etc. Ele é como uma copia virtual de uma CPU, contendo todos os valores, Program counter e instruções que precisa para rodar. Essa abstração existe para o sistema operacional conseguir rodar mais de um programa em uma CPU.
+
+Process Table: Contem todas as informações para rodar um processo, que poderão ser utilizadas para traze-lo de volta à memória quando interrompido.
+
+Process table:
+
+- PID(Indentificador unico)
+- Status
+- Estado:
+- Accounting: Informações de performance
+- Files: Arquivos abertos
+- Parent
+- Childs
+- Endereço de Memória
 
 Processos em Unix:
 
@@ -64,14 +84,12 @@ Processos em Unix:
 - Stack Segment: Contexto de execução que contém variaveis locais, parametros da função e o seu retorno, que cresce para baixo na memória
 - Heap Segment: Memória alocada dinamicamente em tempo de execução.
 
-Interprocess Comunication: Um processo pode criar outro processo para fazer alguma tarefa, o que chamamos de Child-Process, e eles precisam conseguir comunicar-se entre si.
-
-Sistema Time-Sharing: Um programa pode ficar muito tempo esperando um input e a CPU vai ficar parada enquanto poderia estar executando outra coisa. O sistema operacional pode fazer a CPU executar varias tarefas ao mesmo tempo, alterando-se entre si, de modo tão rapido que o usuario nem percebe. Esse tipo de sistema é muito usado quando se tem varios usuarios fazendo tarefas que acabam rapidamente.
-
 Criação de Processo:
 
 - Deamons rodando em background iniciados pelo sistema
-- Child processes criados para um processo completar sua execução
+- Child processes criados para um processo completar sua execução:
+  - Duplicação do processo pai com a mesma imagem de memória
+  - Roda um novo programa pela system call EXEC
 - Usuario requsita a criação de um processo
 
 Terminação de Processo:
@@ -99,8 +117,6 @@ Status do processo:
 - Pronto: Executável, porém está esperando outro processo que está sendo executado pela CPU
 - Bloqueado: Não está executável pois está esperando um evento externo acontecer
 
-Process Table: Contem todas as informações para rodar um processo, que poderão ser utilizadas para traze-lo de volta à memória quando interrompido.
-
 Queues de execução:
 
 - Ready: Os processos com status "Pronto" são colocado em uma fila para serem executados pela CPU
@@ -110,6 +126,48 @@ Queues de execução:
 Scheduler: Define qual processo será executado pela CPU, pegando suas informações da process table, e colocando na fila certa.
 
 Multiprogramming: Apesar da CPU conseguir executar uma instrução por vês, ela pode ir se alternando entre processos, trocando seu Program counter virtual por um program counter físico, que roda os processos em sequencia, de forma alternada.
+
+Sistema Time-Sharing: Um programa pode ficar muito tempo esperando um input e a CPU vai ficar parada enquanto poderia estar executando outra coisa. O sistema operacional pode fazer a CPU executar varias tarefas ao mesmo tempo, alterando-se entre si, de modo tão rapido que o usuario nem percebe. Esse tipo de sistema é muito usado quando se tem varios usuarios fazendo tarefas que acabam rapidamente.
+
+#### Interprocess Comunication
+
+Interprocess Comunication: Um processo pode criar outro processo para fazer alguma tarefa, o que chamamos de Child-Process, e eles precisam conseguir comunicar-se entre si.
+
+Tipos de Comunição entre processos:
+
+- Memória Compartilhada: Os processos concordam em tirar a restrição de compartilhar sua memória e controlam entre si o acesso a pontos compartilhados. É mais rapido pois os processos para pegarem os dados que necessitam só precisam acessar o lugar compartilhado da memória
+- Mensagem: Um processo envia uma mensagem que pode ou dever ser lida por um ou mais processos
+
+Tipos de mensagens:
+
+- Comunicação direta: Um processo manda um buffer passando o nome do processo que ira recebe-lo
+- Comunicação indireta: Um processo manda um buffer para um mailbox ou port, que pode ter o dono sendo um processo, que terá controle para quem poderá escrever nela, ou o sistema operacional, que deverá fornecer system calls para processos poderem criar, deletar e se ler uma mailbox.
+- Sincrono: Um receiver espera que sua mensagem seja enviada e fica bloqueado para qualquer operação, e o consumer também fica bloqueado esperando uma mensagem
+- Assincrono: Um receiver envia uma mensagem e continua suas operações, o consumer lê uma mensagem ou recebe null e continua suas operações
+
+Tipos de buffering na fila:
+
+- Zero capacidade: Uma fila que não tem capacidade, então o sender deve ficar bloqueado ate o recebedor ler a mensagem. É chamado de no-buffering message system
+- Com capacidade limitada: Uma fila que tem N capacidade, então o sender recebe um ponteiro quando envia uma mensagem e continua sua execução, e deve verificar antes de enviar se existe um espaço disponivel.
+- Com capacidade ilimitada: A fila é potencialmente infinita e o sender não precisa ficar bloqueado esperando um espaço ser liberado
+
+Comunicação Cliente-Servidor:
+
+- Socket: Um endpoint para comunicação
+- RPC(Remote Procedure Call): Um processo ou thread chama uma função de outra aplicação
+- Pipes:
+  - Ordinary: Permite comunicação de processos parentes
+  - Named: Permite comunicação de processos não relacionados
+
+Problemas de Comunicação entre processos:
+
+- Race condition: Um ou mais processos estão lendo e escrevendo em um recurso compartilhado
+- Soluções para Mutual exclusion para acessar uma critical section, uma região compartilhada:
+  - Disabilitar os interuptores quando um processo acessar uma região critica, não permitindo que ele tenha seu status alterado
+  - Variaveis de Lock: Quando um processo entra em uma região critica ele seta o lock variable para 1. Mas ainda tem o problema da race condition, pois ler o lock é uma operação
+  - Strick Alternation: Um processo fica em busy waiting verificando se uma variavel foi alterada, e outro processo fica vendo se essa variavel foi alterada com o valor invertido. Funciona porém gasta muita CPU.
+  - Peterson's Alogrithm: Um processo chama uma função para entrar na região e seta o seu turno, a função verifica se outro processo está rodando e deixa um loop bloqueando esse processo de entrar, quando o processo anterior chamar uma função para sair da região e tirar o turno, o processo 1 pode entrar na região.
+  - Instrulçao assembly TSL(Test and Set Lock): Solução de Hardware em que a CPU guarda em um registrador um ponto da memória bloqueado e bloqueia o bus de acesso para qualquer outra CPU. É uma solução para multiplos processadores.
 
 ### Thread
 
