@@ -133,10 +133,37 @@ Sistema Time-Sharing: Um programa pode ficar muito tempo esperando um input e a 
 
 Interprocess Comunication: Um processo pode criar outro processo para fazer alguma tarefa, o que chamamos de Child-Process, e eles precisam conseguir comunicar-se entre si.
 
+Problemas de Comunicação entre processos:
+
+- Corrupção de dados compartilhado
+- Sincronização das suas operações
+
 Tipos de Comunição entre processos:
 
-- Memória Compartilhada: Os processos concordam em tirar a restrição de compartilhar sua memória e controlam entre si o acesso a pontos compartilhados. É mais rapido pois os processos para pegarem os dados que necessitam só precisam acessar o lugar compartilhado da memória
+- Memória Compartilhada: Os processos concordam em tirar a restrição de compartilhar sua memória e controlam entre si o acesso a pontos compartilhados. É mais rapido pois os processos para pegarem os dados que necessitam só precisam acessar o lugar compartilhado da memória. É uma imlpementação de compartilhamento muito baixo nivel, que não pode ser replicada em sistemas distribuidos cada um com sua memória.
 - Mensagem: Um processo envia uma mensagem que pode ou dever ser lida por um ou mais processos
+
+Memória compartilhada entre processos:
+
+Problema de Race condition: Um ou mais processos estão lendo e escrevendo em um recurso compartilhado
+Soluções:
+
+- Mutual exclusion para acessar uma critical section, uma região compartilhada
+- RCU(Read-Copy-Update): Deixar uma versão antiga para leitura, e em operações de adição adicionar o novo dado, porém de forma que não altere a estrutura antiga, quando todas as leituras tiverem ocorridas, aí é atualizado a estrutura antiga para a nova.
+
+Implementações da Solução:
+
+- Disabilitar os interuptores quando um processo acessar uma região critica, não permitindo que ele tenha seu status alterado
+- Variaveis de Lock: Quando um processo entra em uma região critica ele seta o lock variable para 1. Mas ainda tem o problema da race condition, pois ler o lock é uma operação
+- Strick Alternation: Um processo fica em busy waiting verificando se uma variavel foi alterada, e outro processo fica vendo se essa variavel foi alterada com o valor invertido. Funciona porém gasta muita CPU.
+- Peterson's Alogrithm: Um processo chama uma função para entrar na região e seta o seu turno, a função verifica se outro processo está rodando e deixa um loop bloqueando esse processo de entrar, quando o processo anterior chamar uma função para sair da região e tirar o turno, o processo 1 pode entrar na região.
+- Instrulçao assembly TSL(Test and Set Lock): Solução de Hardware em que a CPU guarda em um registrador um ponto da memória bloqueado e bloqueia o bus de acesso para qualquer outra CPU. É uma solução para multiplos processadores.
+- Sleep and Wakeup: Um processo coloca outro para dormir enquanto ele não pode acessar uma região compartilhada e precisa esperar esse processo executar. Como em uma situação de producer-consumer. Isso elimina o busy-waiting e do processo que está esperando gastar tempo de CPU. Porém tem o problema de ter sinais de wakeup perdidos, fazendo com que um processo fique dormindo para sempre
+- Semaforos: Resolvem o problema do lost-wakeup, fazendo com que a mudança no estado de um semafóro seja feita de forma atomica: leitura, alteração do seu valor e colocar processos para dormir são feitos em uma operação, que não pode ser interrompida por nenhum outro processo. Isso é feito desligando os interuptores para essas instruções, e, se tiver mais de uma CPU, colocando a variavél do semaforo lockada com a intrução TSL. E elimina o busy-waiting pois um processo só fica lockado enquanto outro está mudando o semaforo, que são poucas instruções, depois ele é colocado a dormir, não ocupando tempo de CPU.
+- Mutex: São semaforos de 1 bit, que só indicam que uma critical section está bloqueada.
+- Monitor's: Modulos escritos em uma linguagem que possui funções e estrutura de dados proprias que só podem ser chamadas e não alteradas internamente. Por ser uma função o compilador consegue reconhecer suas chamadas e bloquear um acesso por um ou mais processos, escondendo técnicas de mutex e semafóro do programador.
+
+Comunicação por mensgem:
 
 Tipos de mensagens:
 
@@ -156,18 +183,8 @@ Comunicação Cliente-Servidor:
 - Socket: Um endpoint para comunicação
 - RPC(Remote Procedure Call): Um processo ou thread chama uma função de outra aplicação
 - Pipes:
-  - Ordinary: Permite comunicação de processos parentes
-  - Named: Permite comunicação de processos não relacionados
-
-Problemas de Comunicação entre processos:
-
-- Race condition: Um ou mais processos estão lendo e escrevendo em um recurso compartilhado
-- Soluções para Mutual exclusion para acessar uma critical section, uma região compartilhada:
-  - Disabilitar os interuptores quando um processo acessar uma região critica, não permitindo que ele tenha seu status alterado
-  - Variaveis de Lock: Quando um processo entra em uma região critica ele seta o lock variable para 1. Mas ainda tem o problema da race condition, pois ler o lock é uma operação
-  - Strick Alternation: Um processo fica em busy waiting verificando se uma variavel foi alterada, e outro processo fica vendo se essa variavel foi alterada com o valor invertido. Funciona porém gasta muita CPU.
-  - Peterson's Alogrithm: Um processo chama uma função para entrar na região e seta o seu turno, a função verifica se outro processo está rodando e deixa um loop bloqueando esse processo de entrar, quando o processo anterior chamar uma função para sair da região e tirar o turno, o processo 1 pode entrar na região.
-  - Instrulçao assembly TSL(Test and Set Lock): Solução de Hardware em que a CPU guarda em um registrador um ponto da memória bloqueado e bloqueia o bus de acesso para qualquer outra CPU. É uma solução para multiplos processadores.
+  - Ordinary: Permite comunicação de processos parentes e arquivo temporario é deletado
+  - Named: Permite comunicação de processos não relacionados e cria um arquivo no file system que persiste mesmo tendo finalizado o processo
 
 ### Thread
 
