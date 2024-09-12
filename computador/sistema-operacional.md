@@ -64,6 +64,14 @@ Design de modulos do Kernel do Linux:
 
 Processo: Uma abstração de um programa em execução. Todo processo possui range de endereços de memoria que poderá utilizar, e também possui todas as informações para ele rodar: Processos relacionados, arquivos abertos e etc. Ele é como uma copia virtual de uma CPU, contendo todos os valores, Program counter e instruções que precisa para rodar. Essa abstração existe para o sistema operacional conseguir rodar mais de um programa em uma CPU.
 
+O Sistema operacional cuida das seguintes atividades no gerenciamento de processos:
+
+- Agenda processos na CPU e os controla, criando, suspendendo e deletando
+- Provê mecanismo para a sicronização de processos
+- Provê mecanismo para a comunicação de processos
+
+#### O que são Processos
+
 Process Table: Contem todas as informações para rodar um processo, que poderão ser utilizadas para traze-lo de volta à memória quando interrompido.
 
 Process table:
@@ -77,7 +85,7 @@ Process table:
 - Childs
 - Endereço de Memória
 
-Processos em Unix:
+Imagem da Memória de Processos em Unix:
 
 - Text Segment: O Código de execução do programa
 - Data Segment: As variaveis globais, que cresce para cima na memória
@@ -99,17 +107,11 @@ Terminação de Processo:
 - Fatal error: Quando tem um bug no programa e ele acessa recursos que não pode
 - Killed by another process: Outro processo com permisão chama o System call kill
 
-O Sistema operacional cuida das seguintes atividades no gerenciamento de processos:
-
-- Agenda processos e threads na CPU
-- Cria e deleta processos do sistema e do usuario
-- Suspende e continua processos
-- Provê mecanismo para a sicronização de processos
-- Provê mecanismo para a comunicação de processos
-
 Hierarquia de Processos: Em unix temos um grupo de processos, que é todos os child-processes de um processo e seus descendentes. Então o primeiro processo criado, init em Unix, é o pai de todos os processos, e todos eles são derivados dele.
 
 Pipe: Sistemas UNIX possuem um modo de comunicação entre processos em que um processo produz um output, o escreve em uma specie de Pseudoarquivo chamado Pipe, que é usado como input por outro programa.
+
+#### Agendamento de Processos
 
 Status do processo:
 
@@ -143,7 +145,7 @@ Tipos de Comunição entre processos:
 - Memória Compartilhada: Os processos concordam em tirar a restrição de compartilhar sua memória e controlam entre si o acesso a pontos compartilhados. É mais rapido pois os processos para pegarem os dados que necessitam só precisam acessar o lugar compartilhado da memória. É uma imlpementação de compartilhamento muito baixo nivel, que não pode ser replicada em sistemas distribuidos cada um com sua memória.
 - Mensagem: Um processo envia uma mensagem que pode ou dever ser lida por um ou mais processos
 
-Memória compartilhada entre processos:
+###### Memória compartilhada entre processos:
 
 Problema de Race condition: Um ou mais processos estão lendo e escrevendo em um recurso compartilhado
 Soluções:
@@ -151,7 +153,7 @@ Soluções:
 - Mutual exclusion para acessar uma critical section, uma região compartilhada
 - RCU(Read-Copy-Update): Deixar uma versão antiga para leitura, e em operações de adição adicionar o novo dado, porém de forma que não altere a estrutura antiga, quando todas as leituras tiverem ocorridas, aí é atualizado a estrutura antiga para a nova.
 
-Implementações da Solução:
+Implementações de Mutual exclusion:
 
 - Disabilitar os interuptores quando um processo acessar uma região critica, não permitindo que ele tenha seu status alterado
 - Variaveis de Lock: Quando um processo entra em uma região critica ele seta o lock variable para 1. Mas ainda tem o problema da race condition, pois ler o lock é uma operação
@@ -163,7 +165,7 @@ Implementações da Solução:
 - Mutex: São semaforos de 1 bit, que só indicam que uma critical section está bloqueada.
 - Monitor's: Modulos escritos em uma linguagem que possui funções e estrutura de dados proprias que só podem ser chamadas e não alteradas internamente. Por ser uma função o compilador consegue reconhecer suas chamadas e bloquear um acesso por um ou mais processos, escondendo técnicas de mutex e semafóro do programador.
 
-Comunicação por mensgem:
+##### Comunicação por mensgem:
 
 Tipos de mensagens:
 
@@ -190,7 +192,7 @@ Comunicação Cliente-Servidor:
 
 Definição: Um mini processo dentro de um processo, que se refere a uma linha de execução. Um processo pode ter mais de uma linha de execução, podendo ele mesmo ser um scheduler e definir quando rodar e alocar suas execuções. A principal diferença de um processo é que as threads possuem memória compartilhada entre si.
 
-Beneficio de Threads: Sem threads teriamos que criar um processo para cada função que quissesemos executar em parelelo e ser agendada pelo scheduler, porém não conseguiriamos fazer uma mudança global na aplicação, já que as funções estariam dividias em seus processos isolados. Com threads podemos definir as linhas de execução do nosso programa, e da-las ao scheduler, para conseguir executa-las em "paralelo" e ter o beneficio de conseguir fazer mudanças rapidamente na aplicação inteira.
+Beneficio de Threads: Sem threads teriamos que criar um processo para cada função que quissesemos executar em parelelo e ser agendada pelo scheduler, porém não conseguiriamos fazer uma mudança global na aplicação, já que as funções estariam dividias em seus processos isolados. Com threads podemos definir as linhas de execução do nosso programa, e da-las ao scheduler, para conseguir executa-las em "paralelo" e ter o beneficio de conseguir fazer mudanças rapidamente na aplicação inteira. Também o context-switching de Threads é muito menos custoso em memória e CPU, e não tem problema de comunicação recursos entre Threads já que elas estão no mesmo processo.
 
 Dados de uma thread:
 
@@ -208,19 +210,28 @@ Modos de executar um programa:
 
 - Sequencialmente com uma thread: Bloqueam a linha de execução e não pode rodar em paralelo
 - Sequencialmente com Multi-Threading: Roda em paralelo
-- Assincronamente(Finite-state machine): Fazer operações non-blocking de I/O e guardar as operações em tabelas, e altera-las conforme chegam eventos.
-
-Implementação de Threads
-
-- User Level: O Sistema operacional não conhece que existem threads, elas são implementadas por uma blibioteca externa que possui sua propria lógica para lidar internamente com threads dentro de um processo e deixão uma tabela de threads na memória do processo. Tem melhor performance por não precisar fazer system-calls porém perde seu sentido quando tem chamadas I/O que bloqueiam a execução de uma thread, pois o processo será bloqueado pelo sistema operacional e nenhuma thread poderá rodar
-- Kernel Level: A tabela de threads é colocada no kernel e o sistema operacional implementa o agendamento das threads, permitindo que um mesmo processo seja bloqueado em uma thread mas não pare de rodar pois o sistema começou a executar outra thread disponível desse mesmo processo. O problema é o custo das sistem calls.
-- Multiplex user-threads: O programador escolhe quantas threads serão lidadas pelo sistema operacional e quais serão por uma blibioteca user-level, podendo ter uma ou mais threads relacionadas a um thread criada pelo kernel.
+- Assincronamente(Finite-state machine): Fazer operações non-blocking de I/O e guardar as operações em tabelas, e altera-las conforme chegam eventos. Essa é a forma mais complexa
 
 Problemas de Multi-Threading:
 
 - Variaveis globais que são alteradas por varias threads
 - Blibiotecas que podem ser chamada duas vezes por threads diferentes causando comportamentos inesperados
 - Sinais que são mandados pelo sistema operacioanal que não pode sinalizar diretamente para threads user-levels
+
+Implementação de Threads
+
+- User Level: O Sistema operacional não conhece que existem threads, elas são implementadas por uma blibioteca externa que possui sua propria lógica para lidar internamente com threads dentro de um processo e deixão uma tabela de threads na memória do processo. Tem melhor performance por não precisar fazer system-calls porém perde seu sentido quando tem chamadas I/O que bloqueiam a execução de uma thread, pois o processo será bloqueado pelo sistema operacional e nenhuma thread poderá rodar. Também não conseguem usufruir de multiprocessadores, pois apenas uma thread, a criada em kernel-level, consegue acessar o kernel.
+- Kernel Level: A tabela de threads é colocada no kernel e o sistema operacional implementa o agendamento das threads, permitindo que um mesmo processo seja bloqueado em uma thread mas não pare de rodar pois o sistema começou a executar outra thread disponível desse mesmo processo. O problema é o custo das sistem calls para criar threads no kernel.
+- Multiplex user-threads: O programador escolhe quantas threads serão lidadas pelo sistema operacional e quais serão por uma blibioteca user-level, podendo ter uma ou mais threads relacionadas a um thread criada pelo kernel.
+
+Thread-Pool: Criar uma ou mais thread quando um processo inicia.
+
+Beneficios da Thread-Pool:
+
+- Isso faz com que não se crie threads infinitas para cada nova execução, e sim um numero limitado e conhecido, ficando mais seguro para aplicações que não toleram tantas threads
+- Não se perca tempo criando novas threads para executar um código, pois as threads já estão criadas
+
+Threads em Linux: Em linux processos e threads são conceitos que não existem muito bem definidos, por isso são contidos em um conceito abrangente chamado tasks. Linux possui dois system cals para criar novas tasks fork(), que seria como que criar um processo, e clone, que recebe algumas variaveis do conteúdo que irá copiar da task que esta o invocando, sendo mais parecido com a criação de uma thread.
 
 ## Gerenciamento de Memória
 
