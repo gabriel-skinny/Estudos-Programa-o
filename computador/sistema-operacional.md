@@ -109,11 +109,21 @@ Terminação de Processo:
 
 Hierarquia de Processos: Em unix temos um grupo de processos, que é todos os child-processes de um processo e seus descendentes. Então o primeiro processo criado, init em Unix, é o pai de todos os processos, e todos eles são derivados dele.
 
-Pipe: Sistemas UNIX possuem um modo de comunicação entre processos em que um processo produz um output, o escreve em uma specie de Pseudoarquivo chamado Pipe, que é usado como input por outro programa.
-
 #### Agendamento de Processos
 
-Status do processo:
+Scheduler: Define a execução dos processos pela CPU. É preciso usa-lo para que os processos iniciados tenham cada um tempo justo de execução na CPU. Ele torna possível um certo parelelismo, pois a CPU pode ficar alterando varios processos de modo tão rapido que parece estar rodando em paralelo.
+
+Multiprogramming: Apesar da CPU conseguir executar uma instrução por vês, ela pode ir se alternando entre processos, trocando seu Program counter virtual por um program counter físico, que roda os processos em sequencia, de forma alternada.
+
+Quando o Scheduler toma decisão Roda:
+
+- Quando um processo é criado
+- Quando um processo é terminado
+- Quando um processo é bloqueado esperando I/O
+- Quando um processo foi desebloqueado
+- Roda seu algoritimo a cada clock interrupt
+
+Status de um processo:
 
 - Rodando: Sendo executado pela CPU
 - Pronto: Executável, porém está esperando outro processo que está sendo executado pela CPU
@@ -125,11 +135,41 @@ Queues de execução:
 - I/O device: Processos stopados esperando receber o input de algum I/O device
 - Child Process: Iniciou um child-process e está esperando ele terminar de execuar para receber seu output
 
-Scheduler: Define qual processo será executado pela CPU, pegando suas informações da process table, e colocando na fila certa.
+Dispatcher e Context-Switching: O Dispatcher é o modulo do scheduler que lida com a troca dos processos em execução. Ele faz isso por um processo chamado Context-Switchin, que consiste em: entrar em kernel-mode, atualizar a PCB do processo atual e rescrever todo mapa de memória com o processo que está entrando em execução.
 
-Multiprogramming: Apesar da CPU conseguir executar uma instrução por vês, ela pode ir se alternando entre processos, trocando seu Program counter virtual por um program counter físico, que roda os processos em sequencia, de forma alternada.
+Algoritimos de decisão do Scheduler:
 
-Sistema Time-Sharing: Um programa pode ficar muito tempo esperando um input e a CPU vai ficar parada enquanto poderia estar executando outra coisa. O sistema operacional pode fazer a CPU executar varias tarefas ao mesmo tempo, alterando-se entre si, de modo tão rapido que o usuario nem percebe. Esse tipo de sistema é muito usado quando se tem varios usuarios fazendo tarefas que acabam rapidamente.
+- Não preemptivo: Deixa um processo usar a CPU até ser bloqueado. É mais usado em batch-sistems, em que se tem uma rotina para rodar do começo até o fim, sem muitas interações.
+
+  - First-Come, First Served: Os processos em "ready" são colocados em uma fila e o primeiro começa rodar até terminar ou ser bloqueado, e quando bloqueado, o proximo processo começar a executar, e aquele quando volta vai para o final da fila.
+  - Shortest Job First: Os procesosos tem seu tempo predefinido, e com a mesma importância são priorizados os que tem menor tempo de execução. Isso faz com que o Turnaround time diminua. Porém isso implica que todos os processos estarão disponiveis ao mesmo tempo
+
+- Preemptivo: Deixa um processo rodar por um tempo máximo definido, que é informado por um clock interrupt. É o mais usado em sistemas interativos e servidores que servem muitos usuarios, já que é necessario ficar trocando de processo para servi-los e não deixar que um bug em um processo acabe com a execução.
+  - Shortest Remaining Time Next: Versão do Shortest Job first, porém que compara o tempo atual do processo que está rodando, com o tempo de um novo processo inserido em "ready", se o tempo para terminar o processo atual for maior ele o interrompe e executa o novo processo.
+  - Round-Robin: Cada processo é colocado em uma fila e todos tem seu quantum, tempo de execução, defindo, e se ele rodar sem ser bloqueado até o fim do seu quantum ele é interrompido e colocado no ultimo lugar da fila. Um problema é o custo de fazer o context-switch entre os processos, quanto menor for o quantum, mas tempo a CPU gastará o fazendo. Porém se o quantum for muito alto, o tempo de reposta será menor, pois os processos no final da fila demorarão muito tempo para poder rodar.
+  - Priority: Todos os processos tem uma prioridade e o de maior prioridade é colocado a rodar. E para processos de alta prioridade não rodarem indefinidamente, o scheduler pode ir diminuindo sua prioridade até ela ficar menor que um processo da fila, que então é colocada para executar. Ou cada processo ter um quantum para ser interrompido. A definição de prioridade é também importante, é bom colocar processos I/O bound para serem executados rapidamente, para serem bloqueados e saírem da memória. É bem ter classes de prioridades e usar round-roubin em cada classe, de modo que a classe de maior prioridade é primeiro esvaziada, se alternando segundo seu quantum, depois o proximo em prioridade, assim sucessivamente.
+  - Multiplas filas: Processos são colocados em filas em que quanda uma tem um quantum indo do maior ao menor, e conforme ela roda segundo esse quantum, ela desce de lugar para a fila de baixo. Isso permite que processos I/O bound sejam resolvidos rapidamente e CPU bound ganhem bastante tempo de execução conforme desce na fila, minimizando o context-switching
+  - Shortest Process Next: Executa o processo com menor tempo de execução. O problema está em estimar o tempo do processo, o que pode ser feito fazendo a media do histórico de tempo de execução do processo. Usando a tecnica aging, o ultimo tempo de execução tem prioridade em relação aos tempo antigos.
+  - Guaranteed Scheduling: Cada processo ganha um tempo justo de execução na CPU, que é calculado e balanceado conforme os processos vão rodando.
+  - Lotery Tickets: Cada processo ganha tickets que podem ser sorteados para ganhar certo tempo de execução. A vantagem é que um processo pode ser seus tickets para outro processo de que ele depende, asssim esse provavelmente vai ganhar a loteria e executar, resolvendo o seu bloqueio, depois esse servido pode devolver os seus tickets a esse.
+
+Principio de separação do Scheduling Mechanism e Scheduling Policy: Todos os algoritimos acima descritos para definir quem rodará o processo não levam em consideração a opinião de um processo sobre a execução de seus child-processes, o que faz com que a maioria das decisões que ele tome sejam ruins. Por isso muitos sistemas operacionais disponibilizam system calls para um processo dar um input para o algoritimo de scheduler ponderar na sua decisão. A politica é definida por um user-process porém o mecanismo de decisão está no kernel.
+
+Objetivos de um algoritimo de Scheduler para sistemas interativos:
+
+- Justiça: Dar a cada processo o seu tempo de CPU sendo a sua natureza
+- Garantir a política: Verificar se a política imposta está sendo seguida pelos processos
+- Balanceamento: Ter todas as partes do sistema ocupadas
+- Tempo de Resposta: Responder rapidamente aos usuarios
+- Proporcionalidade: Atender às expectativas do usuario
+
+Scheduler do Linux:
+
+- Algoritimo de Prioridade de Grupos
+  - Range de 1 a 100: Tasks de Real-Time com quantum de 200ms
+  - Ragen de 100 a 140: Outras tasks com quantum de 10ms
+
+LoadBalancing em Multiprocessadores: Em computadores de mais de uma CPU o scheduler pode precisar balancear os processos entre as CPU's, tirando processos em uma CPU muito opcupado e os colocando em uma CPU nova
 
 #### Interprocess Comunication
 
@@ -180,7 +220,7 @@ Tipos de buffering na fila:
 - Com capacidade limitada: Uma fila que tem N capacidade, então o sender recebe um ponteiro quando envia uma mensagem e continua sua execução, e deve verificar antes de enviar se existe um espaço disponivel.
 - Com capacidade ilimitada: A fila é potencialmente infinita e o sender não precisa ficar bloqueado esperando um espaço ser liberado
 
-Comunicação Cliente-Servidor:
+Comunicação Cliente-Servidor entre processos:
 
 - Socket: Um endpoint para comunicação
 - RPC(Remote Procedure Call): Um processo ou thread chama uma função de outra aplicação
@@ -225,6 +265,20 @@ Implementação de Threads
 - Multiplex user-threads: O programador escolhe quantas threads serão lidadas pelo sistema operacional e quais serão por uma blibioteca user-level, podendo ter uma ou mais threads relacionadas a um thread criada pelo kernel.
 
 Thread-Pool: Criar uma ou mais thread quando um processo inicia.
+
+Quando usar os dois tipos de Implementação:
+
+- User-Level:
+  - Deve ser usada para uma aplicação especifica, pois o controle do scheduler fica do lado do aplicativo, e ele pode definir a priorida de execução das threads.
+  - Quando é preciso de um context-switching mais leve
+  - Quando se tem apenas um processo rodando na maquina, de modo que não importa se ele é bloqueado.
+- Kenel-Level:
+  - Quando
+
+Schedules dos tipos tipos de Implementação:
+
+- PCS (Process-Contention-Scope): Threads User-Level competem dentro do contexto de um processo, e esse ou um LWP que é agendado pelo schduler do kernel na CPU real
+- SCS(System-Contention-Scope): Threads Kernel-Level competem com todas as threads do sistema. Esse modelo é usado em todos os sistemas operacionais.
 
 Beneficios da Thread-Pool:
 
