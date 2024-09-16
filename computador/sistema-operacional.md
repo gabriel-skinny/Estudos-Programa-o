@@ -1,19 +1,22 @@
 # Estudo - Sistema Operacional
 
-Definição: É um software que funciona como uma inteface entre o usuario e o hardware do computador. Ele fornece as bases para se escrever softwares em alguma linguagem de programação. Ele não faz nada por si mesmo, só fornece o ambiente para que outros programas consigam fazer seu trabalho. Ele também cuidade de como os recursos do computador serão utilizados por um programa, funcionando como uma alocador de recursos.
+Definição: É um software que funciona como uma inteface entre o usuario e o hardware do computador. Ele fornece as bases para se escrever softwares em alguma linguagem de programação. Ele não faz nada por si mesmo, só fornece o ambiente para que outros programas consigam fazer seu trabalho. Ele também cuidade de como os recursos do computador serão utilizados por um programa, funcionando como um alocador de recursos.
 
 Duas funções
 
 - Abstrair operações do Hardware
 - Controlar os recursos do Hardware: Gerenciamento de Processos e de Memória
 
+Como fornece as duas funções/Quando o sistema operacional roda
+
+- Através de Sistem Calls
+- Através de um sinal emitido por um timer no hardware que roda o Interrupt handler do Sistema operacional, fazendo ele ganhar controle sobre a CPU
+
 Abstrações do Sistema Operacional
 
 - Processos e Threads: Abstrai a execução da CPU
 - Gerenciamento de Memória: Abstrai o uso da memória principal
 - Sistema de Arquivos: Abstrai o uso do Disco rigido e algumas operações de I/O
-- Proteção
--
 
 ## Overview da Abstração dos elementos de Hardware feitos pelo OS
 
@@ -22,7 +25,7 @@ Definição: A principal função do sistema operacional é oferecer interfaces 
 Modo de execução de Programas:
 
 - Kernel Mode: As Instruções conseguem falar diretamente com o Hardware. Aqui fica o sistema operacioanl
-- User Mode: Apenas instruções que se comunicam indiretamente com o sistema opeacional. Aqui fica os softwares do usuario
+- User Mode: Apenas instruções que se comunicam indiretamente com o sistema opeacional. Aqui fica os softwares do usuario. Toda e qualquer operação que altera no hardware é travada por ele mesmo.
 
 - System call: Funções que possibilitam o software do usuario entrar no Kernel Mode e falar direto com o hardware.
 
@@ -63,6 +66,10 @@ Design de modulos do Kernel do Linux:
 ### Processos
 
 Processo: Uma abstração de um programa em execução. Todo processo possui range de endereços de memoria que poderá utilizar, e também possui todas as informações para ele rodar: Processos relacionados, arquivos abertos e etc. Ele é como uma copia virtual de uma CPU, contendo todos os valores, Program counter e instruções que precisa para rodar. Essa abstração existe para o sistema operacional conseguir rodar mais de um programa em uma CPU.
+
+Objetivo do Processo: Virtualizar a CPU para abstrari seu uso e permitir execução em "Paralelo", permitindo seu melhor uso.
+
+Problemas centrais da Virtualização: Faze-lo de modo eficiente e perfomático, mas matendo um controle sobre o sistema.
 
 O Sistema operacional cuida das seguintes atividades no gerenciamento de processos:
 
@@ -137,6 +144,14 @@ Queues de execução:
 
 Dispatcher e Context-Switching: O Dispatcher é o modulo do scheduler que lida com a troca dos processos em execução. Ele faz isso por um processo chamado Context-Switchin, que consiste em: entrar em kernel-mode, atualizar a PCB do processo atual e rescrever todo mapa de memória com o processo que está entrando em execução.
 
+Objetivos de um algoritimo de Scheduler para sistemas interativos:
+
+- Justiça: Dar a cada processo o seu tempo de CPU sendo a sua natureza
+- Garantir a política: Verificar se a política imposta está sendo seguida pelos processos
+- Balanceamento: Ter todas as partes do sistema ocupadas
+- Tempo de Resposta: Responder rapidamente aos usuarios
+- Proporcionalidade: Atender às expectativas do usuario
+
 Algoritimos de decisão do Scheduler:
 
 - Não preemptivo: Deixa um processo usar a CPU até ser bloqueado. É mais usado em batch-sistems, em que se tem uma rotina para rodar do começo até o fim, sem muitas interações.
@@ -154,14 +169,6 @@ Algoritimos de decisão do Scheduler:
   - Lotery Tickets: Cada processo ganha tickets que podem ser sorteados para ganhar certo tempo de execução. A vantagem é que um processo pode ser seus tickets para outro processo de que ele depende, asssim esse provavelmente vai ganhar a loteria e executar, resolvendo o seu bloqueio, depois esse servido pode devolver os seus tickets a esse.
 
 Principio de separação do Scheduling Mechanism e Scheduling Policy: Todos os algoritimos acima descritos para definir quem rodará o processo não levam em consideração a opinião de um processo sobre a execução de seus child-processes, o que faz com que a maioria das decisões que ele tome sejam ruins. Por isso muitos sistemas operacionais disponibilizam system calls para um processo dar um input para o algoritimo de scheduler ponderar na sua decisão. A politica é definida por um user-process porém o mecanismo de decisão está no kernel.
-
-Objetivos de um algoritimo de Scheduler para sistemas interativos:
-
-- Justiça: Dar a cada processo o seu tempo de CPU sendo a sua natureza
-- Garantir a política: Verificar se a política imposta está sendo seguida pelos processos
-- Balanceamento: Ter todas as partes do sistema ocupadas
-- Tempo de Resposta: Responder rapidamente aos usuarios
-- Proporcionalidade: Atender às expectativas do usuario
 
 Scheduler do Linux:
 
