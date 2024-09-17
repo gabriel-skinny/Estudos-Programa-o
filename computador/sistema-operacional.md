@@ -1,6 +1,6 @@
 # Estudo - Sistema Operacional
 
-Definição: É um software que funciona como uma inteface entre o usuario e o hardware do computador. Ele fornece as bases para se escrever softwares em alguma linguagem de programação. Ele não faz nada por si mesmo, só fornece o ambiente para que outros programas consigam fazer seu trabalho. Ele também cuidade de como os recursos do computador serão utilizados por um programa, funcionando como um alocador de recursos.
+Definição: É um software que funciona como uma inteface entre o usuario e o hardware do computador. Ele fornece as bases para se escrever softwares em alguma linguagem de programação. Ele não faz nada por si mesmo, só fornece o ambiente para que outros programas consigam fazer seu trabalho. Ele também cuida de como os recursos do computador serão utilizados por um programa, funcionando como um alocador de recursos.
 
 Duas funções
 
@@ -152,21 +152,35 @@ Objetivos de um algoritimo de Scheduler para sistemas interativos:
 - Tempo de Resposta: Responder rapidamente aos usuarios
 - Proporcionalidade: Atender às expectativas do usuario
 
+Métrica Importantes:
+
+- Turnaround Time: Tempo que um processo demora para terminar assim que chega à fila de pronto
+- Response Time: Tempo que um processo demora para responder algo
+- Fairness: Porcentagem em que um processo roda em um ciclo total de execução
+
 Algoritimos de decisão do Scheduler:
 
 - Não preemptivo: Deixa um processo usar a CPU até ser bloqueado. É mais usado em batch-sistems, em que se tem uma rotina para rodar do começo até o fim, sem muitas interações.
 
   - First-Come, First Served: Os processos em "ready" são colocados em uma fila e o primeiro começa rodar até terminar ou ser bloqueado, e quando bloqueado, o proximo processo começar a executar, e aquele quando volta vai para o final da fila.
-  - Shortest Job First: Os procesosos tem seu tempo predefinido, e com a mesma importância são priorizados os que tem menor tempo de execução. Isso faz com que o Turnaround time diminua. Porém isso implica que todos os processos estarão disponiveis ao mesmo tempo
+  - Shortest Job First: Os procesosos tem seu tempo predefinido, e com a mesma importância são priorizados os que tem menor tempo de execução. Isso faz com que o Turnaround time diminua. Porém isso implica que todos os processos estarão disponiveis ao mesmo tempo. É o melhor algoritimo para TurnAround time
 
-- Preemptivo: Deixa um processo rodar por um tempo máximo definido, que é informado por um clock interrupt. É o mais usado em sistemas interativos e servidores que servem muitos usuarios, já que é necessario ficar trocando de processo para servi-los e não deixar que um bug em um processo acabe com a execução.
+- Preemptivo: Deixa um processo rodar por um tempo máximo definido, que é informado por um clock interrupt. É o mais usado em sistemas interativos e servidores que servem muitos usuarios, já que é necessario ficar trocando de processo para servi-los e não deixar que um bug em um processo acabe com a execução da CPU.
+
   - Shortest Remaining Time Next: Versão do Shortest Job first, porém que compara o tempo atual do processo que está rodando, com o tempo de um novo processo inserido em "ready", se o tempo para terminar o processo atual for maior ele o interrompe e executa o novo processo.
-  - Round-Robin: Cada processo é colocado em uma fila e todos tem seu quantum, tempo de execução, defindo, e se ele rodar sem ser bloqueado até o fim do seu quantum ele é interrompido e colocado no ultimo lugar da fila. Um problema é o custo de fazer o context-switch entre os processos, quanto menor for o quantum, mas tempo a CPU gastará o fazendo. Porém se o quantum for muito alto, o tempo de reposta será menor, pois os processos no final da fila demorarão muito tempo para poder rodar.
+  - Round-Robin: Cada processo é colocado em uma fila e todos tem seu quantum, tempo de execução, defindo, e se ele rodar sem ser bloqueado até o fim do seu quantum ele é interrompido e colocado no ultimo lugar da fila. Um problema é o custo de fazer o context-switch entre os processos, quanto menor for o quantum, mas tempo a CPU gastará o fazendo. Porém se o quantum for muito alto, o tempo de reposta será menor, pois os processos no final da fila demorarão muito tempo para poder rodar. Esse é melhor algoritimo quando se trata de response time, porém o pior se considerado o turnaround time, tempo que um processo leva para terminar assim que é colocado na fila, uma FIFO nesse caso é bem melhor.
+
   - Priority: Todos os processos tem uma prioridade e o de maior prioridade é colocado a rodar. E para processos de alta prioridade não rodarem indefinidamente, o scheduler pode ir diminuindo sua prioridade até ela ficar menor que um processo da fila, que então é colocada para executar. Ou cada processo ter um quantum para ser interrompido. A definição de prioridade é também importante, é bom colocar processos I/O bound para serem executados rapidamente, para serem bloqueados e saírem da memória. É bem ter classes de prioridades e usar round-roubin em cada classe, de modo que a classe de maior prioridade é primeiro esvaziada, se alternando segundo seu quantum, depois o proximo em prioridade, assim sucessivamente.
+  - Multi-Level FeedBack Queue: Filas de prioridades em que os processos são alternados com Round-Robin segundo um quantum. A prioridade é definida pelo tempo de execução dos processos, que conforme usam CPU vai caindo na fila. É um dos algoritimos mais usados em sistemas modernos
   - Multiplas filas: Processos são colocados em filas em que quanda uma tem um quantum indo do maior ao menor, e conforme ela roda segundo esse quantum, ela desce de lugar para a fila de baixo. Isso permite que processos I/O bound sejam resolvidos rapidamente e CPU bound ganhem bastante tempo de execução conforme desce na fila, minimizando o context-switching
+
   - Shortest Process Next: Executa o processo com menor tempo de execução. O problema está em estimar o tempo do processo, o que pode ser feito fazendo a media do histórico de tempo de execução do processo. Usando a tecnica aging, o ultimo tempo de execução tem prioridade em relação aos tempo antigos.
-  - Guaranteed Scheduling: Cada processo ganha um tempo justo de execução na CPU, que é calculado e balanceado conforme os processos vão rodando.
-  - Lotery Tickets: Cada processo ganha tickets que podem ser sorteados para ganhar certo tempo de execução. A vantagem é que um processo pode ser seus tickets para outro processo de que ele depende, asssim esse provavelmente vai ganhar a loteria e executar, resolvendo o seu bloqueio, depois esse servido pode devolver os seus tickets a esse.
+
+Fair Sharness Algoritimhs: São mais usados quando sabe quais processos vão rodar e qual sua importancia de ante mão, por exemplo em ambientes virtuais e data-centers. E também quando se tem mais operações CPU bound do que I/O bound.
+
+- Guaranteed Scheduling: Cada processo ganha um tempo justo de execução na CPU, que é calculado e balanceado conforme os processos vão rodando.
+- Lotery Tickets: Cada processo ganha tickets que podem ser sorteados para ganhar certo tempo de execução. A vantagem é que um processo pode ser seus tickets para outro processo de que ele depende, asssim esse provavelmente vai ganhar a loteria e executar, resolvendo o seu bloqueio, depois esse servido pode devolver os seus tickets a esse. O seu objetivo é atingir fairness na execução dos processos, o que acontece quanto mais tempo os processos rodam, pois a randomização fica mais certa.
+- Completly Fairness(Linux): Cada processo possui um virtual runtime, que é definido pelo runtime real \* peso do processo, definido pelo usuario. O processo que roda é o que tem menos vruntime. Para melhorar a performance do scheduler, ele armazena os processos rodando em um red-black-tree, tornando as operações em O(log n). É o algoritimo baseado em fairness mais usado nos dias de hoje.
 
 Principio de separação do Scheduling Mechanism e Scheduling Policy: Todos os algoritimos acima descritos para definir quem rodará o processo não levam em consideração a opinião de um processo sobre a execução de seus child-processes, o que faz com que a maioria das decisões que ele tome sejam ruins. Por isso muitos sistemas operacionais disponibilizam system calls para um processo dar um input para o algoritimo de scheduler ponderar na sua decisão. A politica é definida por um user-process porém o mecanismo de decisão está no kernel.
 
@@ -174,7 +188,7 @@ Scheduler do Linux:
 
 - Algoritimo de Prioridade de Grupos
   - Range de 1 a 100: Tasks de Real-Time com quantum de 200ms
-  - Ragen de 100 a 140: Outras tasks com quantum de 10ms
+  - Range de 100 a 140: Outras tasks com quantum de 10ms
 
 LoadBalancing em Multiprocessadores: Em computadores de mais de uma CPU o scheduler pode precisar balancear os processos entre as CPU's, tirando processos em uma CPU muito opcupado e os colocando em uma CPU nova
 
