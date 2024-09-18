@@ -316,9 +316,29 @@ O sistema operacional faz as seguintes operacões para o gerenciamento de memór
 
 - Guarda o registro de quais partes da memória estão sendo acessados e por quem
 - Decide que processos e dados para tira-lo ou coloca-lo em memória
-- Alocar e desalocar espaço da memória conforme a necessidade
+- Aloca e desaloca espaço da memória conforme a necessidade
 
 Memória Virtual: Um dos recursos que o sistema operacional faz é abstrair os endereços físicos da memoria para endereços virtuais. Isso permite que o sistema operacional consiga fornecer a um programa mais memória do que existe no computador e isola-lo de usar a memória de outros programas.
+
+Memória e Processos: Os processos que estão rodando ficam em memória, pois seria muito custoso ficar puxando do disco para fazer um context-switch.
+
+Blueprint de um Process em Memória:
+
+- Program Code: Segmento fixo onde está as instruções do código
+- Heap: Dados alocados dinamicamente, vai crescendo para cima no espaço livre. São normalmente lidadas pelo programador ou por linguagens que tem Garbage Collector.
+- Free: Espaço para ser preenchido enquanto o programa roda
+- Stack: Variaveis locais, argumentos de funções e seus retornos, cresce para baixo na memória livre. São normalmente lidadas pelo compilador mesmo em linguagem de baixo nível
+
+Objetivos da abstração da Memória Virtual feita pelo OS:
+
+- Transparencia: Deixar isolada a lógica da memória e as especifiações do hardware para o programador
+- Eficiência: Usar do modo mais eficiente possível a memória disponível no sistema
+- Proteção: Não deixa um processo alterar a memória de outro processo
+
+System calls de Memoria
+
+- brk: Estende o espaço da memória livre do programa
+- mmap: Cria um novo mapping da memória virtual do processo
 
 ## Sistema da Arquivos
 
