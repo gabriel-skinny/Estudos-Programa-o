@@ -18,6 +18,13 @@ Abstrações do Sistema Operacional
 - Gerenciamento de Memória: Abstrai o uso da memória principal
 - Sistema de Arquivos: Abstrai o uso do Disco rigido e algumas operações de I/O
 
+Dois Objetivos do Sistema operacional
+
+- Garantir um controle sobre o hardware, deixando o minimo possível para o usuario
+- Garantir máxima eficiência do Hardware
+
+TradeOff Controle Geral X Performance: Quanto mais regras tem o OS para controlar o hardware, mais espcifica são suas soluções, piorando a performance para os casos gerais
+
 ## Overview da Abstração dos elementos de Hardware feitos pelo OS
 
 Definição: A principal função do sistema operacional é oferecer interfaces abstratas para se comunicar com o hardware, mas ele não faz liberalmente, e sim por uma regra de segurança.
@@ -339,6 +346,28 @@ System calls de Memoria
 
 - brk: Estende o espaço da memória livre do programa
 - mmap: Cria um novo mapping da memória virtual do processo
+
+### Implementação da Virtualização
+
+Mecanismo do Hardware:
+
+- Registradores Base and Bound para determinar grupo da memória de um processo
+- Registradores para determinar o tipo de segmeento do registrador Base, Bound: Code, Heap ou Stack
+- Bit para saber se a memória cresce para cima ou para baixo
+- Bit para determinar se o espaço na memória é Writable, Redable e Exectuable
+- Estorar uma excessão quando usuario acessar uma memória outofbounds
+
+Macanismo do OS:
+
+- Alocar memória para o processo na sua criação e marca-la como "em uso"
+- Deslocar memória quando um processo morre e marca-lo como "livre"
+- Setar os registradores base/bound quando tiver um context switch
+- Lidar com excessões out of bounds enviadas pelo HardWare, setando em Boottime o código para lidar com essa excessão.
+
+Soluções de Virtualização:
+
+- Base and Bound ou Dynamic Alocation: O Hardware possui dois registradores Base e Bound, onde os OS preenche como sendo o endereço de memória do processo. Então o hardware sempre quando recebe uma instrução para pegar da memória de um programa, soma ao registrador base para pegar o endereço fisíco. E se o endereço virtual passado pelo processo for maior que o endereço colocado no Bound, a CPU estora um erro. Isso é adicionado na MMU. O Problema dessa solução é que não é flexivel, sempre blocos de memória continuos são ocupados, e também fica um espaço vazio enorme entre a stack e o heap bloqueada de ser alocado, pois pode ser usado pelo programa.
+- Segmentation: Criar um base and size para cada segmento de um processo, code, stack e heap, fazendo com que eles possam ser alocados individualmente em qualquer lugar da memória. O Hardware pode achar o segmento de modo explicito: em um endereço de 14 bits, os dois primeiros dizem para o hardware qual tipo de segmento é, e quais registradores ele deve usar; ou de modo implicito: Analisar qual instrução está enviando o endereõ, é uma instrução vinda do program counter, pega do code; ou stack pointer, pega da stack; e os outros do heap.
 
 ## Sistema da Arquivos
 
