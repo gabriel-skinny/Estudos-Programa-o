@@ -364,10 +364,26 @@ Macanismo do OS:
 - Setar os registradores base/bound quando tiver um context switch
 - Lidar com excessões out of bounds enviadas pelo HardWare, setando em Boottime o código para lidar com essa excessão.
 
-Soluções de Virtualização:
+Implementações de Virtualização:
 
 - Base and Bound ou Dynamic Alocation: O Hardware possui dois registradores Base e Bound, onde os OS preenche como sendo o endereço de memória do processo. Então o hardware sempre quando recebe uma instrução para pegar da memória de um programa, soma ao registrador base para pegar o endereço fisíco. E se o endereço virtual passado pelo processo for maior que o endereço colocado no Bound, a CPU estora um erro. Isso é adicionado na MMU. O Problema dessa solução é que não é flexivel, sempre blocos de memória continuos são ocupados, e também fica um espaço vazio enorme entre a stack e o heap bloqueada de ser alocado, pois pode ser usado pelo programa.
-- Segmentation: Criar um base and size para cada segmento de um processo, code, stack e heap, fazendo com que eles possam ser alocados individualmente em qualquer lugar da memória. O Hardware pode achar o segmento de modo explicito: em um endereço de 14 bits, os dois primeiros dizem para o hardware qual tipo de segmento é, e quais registradores ele deve usar; ou de modo implicito: Analisar qual instrução está enviando o endereõ, é uma instrução vinda do program counter, pega do code; ou stack pointer, pega da stack; e os outros do heap.
+- Segmentation: Criar um base and size para cada segmento de um processo, code, stack e heap, fazendo com que eles possam ser alocados individualmente em qualquer lugar da memória. O Hardware pode achar o segmento de modo explicito: em um endereço de 14 bits, os dois primeiros dizem para o hardware qual tipo de segmento é, e quais registradores ele deve usar; ou de modo implicito: Analisar qual instrução está enviando o endereço, se é uma instrução vinda do program counter, pega do code; ou stack pointer, pega da stack; e os outros do heap. O problema do modo explicito é que os endereços de memórias ficam curtos, pois os dois primeiros bits limitam os lugares onde os segmentos podem ser alocados.
+- Fine-Grained Segmentation: O Hardware implementa uma segment table que determina alguns segmento da memória, que o OS escolhe para o processo quando o compilador separa o código do data, e o OS também pode aumenta-lo. Um dos problemas dessa implementação é a fragmentação da memória, já que podem existir muito segmentos curtos, que não conseguem ser alocados, mas que se tivessem juntos, compactados poderiam alocar um processo.
+- Paging: O Sistema operacional divida a sua memória virtual em paginas, o que é feito também a nivel hardware, e o OS possui uma estrutura da data por processo chamada page table que mapeia o endereço da pagina virtual à sua pagina fisica. Isso garante muito mais abstração e flexibilidade, pois o hardware não precisa saber o tipo de segmento e para onde ele cresce. Os primeiros bits de um endereço determinam o número de sua pagina virtual, que é transposta pelo hardware para achar a pagina física, e o resto é um endereço de offset dentro da pagina.
+
+Implementação de Manegamento de Free Space em Segmentações:
+
+- Segmentações de espaço variável
+- Segmentações de espaço fixo(paging)
+
+Alocadores de Free-Space tanto do OS quanto de libs do usuario para alocar memória no Heap como malloc:
+
+- Spliting: O Alocador ele apenas envia o espaço necessario de uma segmentação maior
+- Coalascing: O Alocador junta espaços de memorias que estão proximos para não deixa-los fragmentados na free-list
+- Politica Best-Fit: Alocador procura o espaço da Memória que tem um espaço mais semelhante ao escolhido pelo usuario. Precisa iterar sobre toda a lista
+- Politica Worst-Fit: Achar o maior bloco disponivel, com o intuito de evitar fragmentação. Precisa iterar sobre toda a lista
+- First-Fit: Acha o primeiro bloco que satisfaz o pedido
+- Next-Fit: Tem um pointeiro extra mostrando o ultimo bloco procurado na lista
 
 ## Sistema da Arquivos
 
